@@ -1,0 +1,16 @@
+[project]
+name = "tutor-orgcode-enterprise"
+version = "0.1.0"
+description = "OrgCode Enterprise Tutor Plugin"
+requires-python = ">=3.11"
+
+[project.entry-points."tutor.plugin.v1"]
+orgcode_enterprise = "orgcode_enterprise.plugin"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
