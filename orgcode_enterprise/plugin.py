@@ -1,12 +1,20 @@
 from tutor import hooks
 
-# Add Django app to LMS
-hooks.Filters.ENV_PATCHES.add_item(
+# Mount local source directory into Docker build context
+hooks.Filters.IMAGES_BUILD_MOUNTS.add_item(
     (
-        "openedx-lms-common-settings",
-        """
-INSTALLED_APPS.append("orgcode_enterprise")
-"""
+        "openedx",
+        "/home/cbaadmin/src/orgcode-enterprise",
+        "/mnt/orgcode-enterprise",
     )
 )
 
+# Install the package into the openedx image
+hooks.Filters.IMAGES_BUILD.add_item(
+    (
+        "openedx",
+        """
+        RUN uv pip install -e /mnt/orgcode-enterprise
+        """,
+    )
+)
