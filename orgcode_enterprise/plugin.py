@@ -1,6 +1,8 @@
 from tutor import hooks
 
-# Install the Django app into the Open edX image (container Python)
+# --------------------------------------------------
+# Install package into Open edX image
+# --------------------------------------------------
 hooks.Filters.CONFIG_DEFAULTS.add_item(
     (
         "OPENEDX_EXTRA_PIP_REQUIREMENTS",
@@ -10,9 +12,9 @@ hooks.Filters.CONFIG_DEFAULTS.add_item(
     )
 )
 
-# ✅ DO NOT patch lms-env INSTALLED_APPS (it can wipe core Django apps).
-# Instead, patch the Django settings so we append safely.
-
+# --------------------------------------------------
+# Add app to Django settings safely
+# --------------------------------------------------
 hooks.Filters.ENV_PATCHES.add_item(
     (
         "openedx-lms-production-settings",
@@ -31,6 +33,22 @@ hooks.Filters.ENV_PATCHES.add_item(
 # --- orgcode_enterprise: add Django app safely ---
 if "orgcode_enterprise" not in INSTALLED_APPS:
     INSTALLED_APPS.append("orgcode_enterprise")
+""",
+    )
+)
+
+# --------------------------------------------------
+# Register API URLs in LMS
+# --------------------------------------------------
+hooks.Filters.URLS.add_item(
+    (
+        "lms",
+        """
+from django.urls import path, include
+
+urlpatterns += [
+    path("api/orgcode/", include("orgcode_enterprise.urls")),
+]
 """,
     )
 )
