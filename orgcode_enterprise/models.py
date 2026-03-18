@@ -16,16 +16,22 @@ class OrgCode(models.Model):
     - per-user limits
     """
 
+    # ------------------------
     # Core
+    # ------------------------
     code = models.CharField(max_length=50, unique=True, db_index=True)
     enterprise_customer_uuid = models.UUIDField(db_index=True)
 
     description = models.CharField(max_length=255, blank=True)
 
+    # ------------------------
     # Activation
+    # ------------------------
     active = models.BooleanField(default=True)
 
+    # ------------------------
     # Discount (only ONE should be used)
+    # ------------------------
     discount_percent = models.DecimalField(
         max_digits=5, decimal_places=2, null=True, blank=True
     )
@@ -33,20 +39,28 @@ class OrgCode(models.Model):
         max_digits=10, decimal_places=2, null=True, blank=True
     )
 
+    # ------------------------
     # Usage limits
+    # ------------------------
     usage_limit = models.PositiveIntegerField(null=True, blank=True)
     times_used = models.PositiveIntegerField(default=0)
     max_uses_per_user = models.PositiveIntegerField(null=True, blank=True)
 
+    # ------------------------
     # Validity window
+    # ------------------------
     valid_from = models.DateTimeField(null=True, blank=True)
     valid_until = models.DateTimeField(null=True, blank=True)
 
+    # ------------------------
     # Targeting (optional)
+    # ------------------------
     course_id = models.CharField(max_length=255, null=True, blank=True)
     program_id = models.CharField(max_length=255, null=True, blank=True)
 
+    # ------------------------
     # Audit
+    # ------------------------
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
@@ -54,15 +68,19 @@ class OrgCode(models.Model):
     # VALIDATION
     # ------------------------
     def clean(self):
+        # Only one discount type allowed
         if self.discount_percent and self.discount_amount:
-            raise ValidationError("Only one of discount_percent or discount_amount can be set.")
+            raise ValidationError(
+                "Only one of discount_percent or discount_amount can be set."
+            )
 
+        # Validate date range
         if self.valid_from and self.valid_until:
             if self.valid_from > self.valid_until:
                 raise ValidationError("valid_from must be before valid_until.")
 
     def save(self, *args, **kwargs):
-        self.full_clean()  # enforce validation on save
+        self.full_clean()  # enforce validation
         super().save(*args, **kwargs)
 
     # ------------------------
