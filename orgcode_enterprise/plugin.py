@@ -1,16 +1,14 @@
 from tutor import hooks
 
 # --------------------------------------------------
-# Install package into Open edX Docker image (CORRECT)
+# Install package into Open edX Docker image (FIXED)
 # --------------------------------------------------
-hooks.Filters.CONFIG_DEFAULTS.add_item(
+hooks.Filters.CONFIG_DEFAULTS.add_items([
     (
         "OPENEDX_EXTRA_PIP_REQUIREMENTS",
-        [
-            "git+https://github.com/pselleh/orgcode-enterprise.git@main",
-        ],
-    )
-)
+        ["git+https://github.com/pselleh/orgcode-enterprise.git@main"],
+    ),
+])
 
 # --------------------------------------------------
 # Register Django app (LMS - production + development)
@@ -33,7 +31,7 @@ if "orgcode_enterprise" not in INSTALLED_APPS:
 ])
 
 # --------------------------------------------------
-# Register URLs (safe but optional)
+# Register URLs (safe, guarded)
 # --------------------------------------------------
 hooks.Filters.ENV_PATCHES.add_item(
     (
