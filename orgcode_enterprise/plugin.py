@@ -1,7 +1,7 @@
 from tutor import hooks
 
 # --------------------------------------------------
-# Install package into Open edX image
+# Install package into Open edX Docker image
 # --------------------------------------------------
 hooks.Filters.CONFIG_DEFAULTS.add_item(
     (
@@ -13,42 +13,48 @@ hooks.Filters.CONFIG_DEFAULTS.add_item(
 )
 
 # --------------------------------------------------
-# Add app to Django settings safely
+# Register Django app (LMS - production + development)
 # --------------------------------------------------
-hooks.Filters.ENV_PATCHES.add_item(
+hooks.Filters.ENV_PATCHES.add_items([
     (
         "openedx-lms-production-settings",
         """
-# --- orgcode_enterprise: add Django app safely ---
+# --- orgcode_enterprise: register Django app ---
 if "orgcode_enterprise" not in INSTALLED_APPS:
     INSTALLED_APPS.append("orgcode_enterprise")
 """,
-    )
-)
-
-hooks.Filters.ENV_PATCHES.add_item(
+    ),
     (
         "openedx-lms-development-settings",
         """
-# --- orgcode_enterprise: add Django app safely ---
+# --- orgcode_enterprise: register Django app ---
 if "orgcode_enterprise" not in INSTALLED_APPS:
     INSTALLED_APPS.append("orgcode_enterprise")
 """,
-    )
-)
+    ),
+])
 
 # --------------------------------------------------
-# Register API URLs in LMS
+# Register URLs (SAFE for Tutor 21+)
 # --------------------------------------------------
-hooks.Filters.URLS.add_item(
+hooks.Filters.ENV_PATCHES.add_item(
     (
-        "lms",
+        "openedx-lms-common-settings",
         """
-from django.urls import path, include
+# --- orgcode_enterprise: safe URL registration ---
+try:
+    from django.urls import include, path
 
-urlpatterns += [
-    path("api/orgcode/", include("orgcode_enterprise.urls")),
-]
+    if "urlpatterns" in globals():
+        if not any(
+            hasattr(p, "urlconf_module") and p.urlconf_module == "orgcode_enterprise.urls"
+            for p in urlpatterns
+        ):
+            urlpatterns += [
+                path("api/orgcode/", include("orgcode_enterprise.urls")),
+            ]
+except Exception:
+    pass
 """,
     )
 )
