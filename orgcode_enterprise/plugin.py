@@ -1,38 +1,59 @@
 from tutor import hooks
 
-# --------------------------------------------------
-# Install package into Open edX Docker image (FIXED)
-# --------------------------------------------------
-hooks.Filters.CONFIG_DEFAULTS.add_items([
-    (
-        "OPENEDX_EXTRA_PIP_REQUIREMENTS",
-        ["git+https://github.com/pselleh/orgcode-enterprise.git@main"],
-    ),
-])
+# ==================================================
+# COPY orgcode_enterprise INTO IMAGE
+# ==================================================
 
-# --------------------------------------------------
-# Register Django app (LMS - production + development)
-# --------------------------------------------------
-hooks.Filters.ENV_PATCHES.add_items([
+hooks.Filters.ENV_PATCHES.add_item(
     (
-        "openedx-lms-production-settings",
+        "openedx-dockerfile-pre",
         """
+# Copy orgcode_enterprise plugin into image
+COPY plugins/orgcode-enterprise /openedx/requirements/orgcode-enterprise
+""",
+    )
+)
+
+# ==================================================
+# INSTALL PACKAGE INTO OPENEDX
+# ==================================================
+
+hooks.Filters.CONFIG_DEFAULTS.add_items(
+    [
+        (
+            "OPENEDX_EXTRA_PIP_REQUIREMENTS",
+            ["file:///openedx/requirements/orgcode-enterprise"],
+        ),
+    ]
+)
+
+# ==================================================
+# REGISTER DJANGO APP
+# ==================================================
+
+hooks.Filters.ENV_PATCHES.add_items(
+    [
+        (
+            "openedx-lms-production-settings",
+            """
 if "orgcode_enterprise" not in INSTALLED_APPS:
     INSTALLED_APPS.append("orgcode_enterprise")
 """,
-    ),
-    (
-        "openedx-lms-development-settings",
-        """
+        ),
+        (
+            "openedx-lms-development-settings",
+            """
 if "orgcode_enterprise" not in INSTALLED_APPS:
     INSTALLED_APPS.append("orgcode_enterprise")
 """,
-    ),
-])
+        ),
+    ]
+)
 
-# --------------------------------------------------
-# Register URLs (safe, guarded)
-# --------------------------------------------------
+# ==================================================
+# REGISTER URLS (SAFE)
+# ==================================================
+
 hooks.Filters.ENV_PATCHES.add_item(
     (
         "openedx-lms-common-settings",
