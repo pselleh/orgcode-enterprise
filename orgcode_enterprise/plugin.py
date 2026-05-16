@@ -1,30 +1,28 @@
 from tutor import hooks
 
 # ==================================================
-# COPY orgcode_enterprise INTO IMAGE
+# INSTALL orgcode_enterprise INTO OPENEDX IMAGE
 # ==================================================
 
 hooks.Filters.ENV_PATCHES.add_item(
     (
-        "openedx-dockerfile-pre",
+        "private.txt",
         """
-# Copy orgcode_enterprise plugin into image
-COPY plugins/orgcode-enterprise /openedx/requirements/orgcode-enterprise
+-e /openedx/orgcode-enterprise
 """,
     )
 )
 
 # ==================================================
-# INSTALL PACKAGE INTO OPENEDX
+# MOUNT PACKAGE INTO OPENEDX BUILD CONTEXT
 # ==================================================
 
-hooks.Filters.CONFIG_DEFAULTS.add_items(
-    [
-        (
-            "OPENEDX_EXTRA_PIP_REQUIREMENTS",
-            ["file:///openedx/requirements/orgcode-enterprise"],
-        ),
-    ]
+hooks.Filters.MOUNTED_DIRECTORIES.add_item(
+    (
+        "openedx",
+        "/home/cbaadmin/src/orgcode-enterprise",
+        "/openedx/orgcode-enterprise",
+    )
 )
 
 # ==================================================
@@ -51,7 +49,7 @@ if "orgcode_enterprise" not in INSTALLED_APPS:
 )
 
 # ==================================================
-# REGISTER URLS (SAFE)
+# REGISTER URLS SAFELY
 # ==================================================
 
 hooks.Filters.ENV_PATCHES.add_item(
