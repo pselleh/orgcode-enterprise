@@ -14,7 +14,7 @@ RUN pip install -e git+https://github.com/pselleh/orgcode-enterprise.git#egg=tut
 )
 
 # =========================================================
-# REGISTER APP
+# REGISTER REAL DJANGO APP
 # =========================================================
 
 hooks.Filters.ENV_PATCHES.add_items(
@@ -22,33 +22,16 @@ hooks.Filters.ENV_PATCHES.add_items(
         (
             "openedx-lms-production-settings",
             """
-if "orgcode_enterprise.apps.OrgcodeEnterpriseConfig" not in INSTALLED_APPS:
-    INSTALLED_APPS.append("orgcode_enterprise.apps.OrgcodeEnterpriseConfig")
+if "orgcode_enterprise.apps.orgcode" not in INSTALLED_APPS:
+    INSTALLED_APPS.append("orgcode_enterprise.apps.orgcode")
 """,
         ),
         (
             "openedx-lms-development-settings",
             """
-if "orgcode_enterprise.apps.OrgcodeEnterpriseConfig" not in INSTALLED_APPS:
-    INSTALLED_APPS.append("orgcode_enterprise.apps.OrgcodeEnterpriseConfig")
+if "orgcode_enterprise.apps.orgcode" not in INSTALLED_APPS:
+    INSTALLED_APPS.append("orgcode_enterprise.apps.orgcode")
 """,
         ),
     ]
-)
-
-# =========================================================
-# PATCH LMS URLCONF DIRECTLY
-# =========================================================
-
-hooks.Filters.ENV_PATCHES.add_item(
-    (
-        "openedx-lms-urls",
-        """
-from django.urls import include, path
-
-urlpatterns.append(
-    path("api/orgcode/", include("orgcode_enterprise.urls"))
-)
-""",
-    )
 )
