@@ -1,7 +1,7 @@
 from tutor import hooks
 
 # =========================================================
-# INSTALL PACKAGE DIRECTLY FROM GITHUB
+# INSTALL PACKAGE INTO OPENEDX IMAGE
 # =========================================================
 
 hooks.Filters.ENV_PATCHES.add_item(
@@ -21,38 +21,34 @@ hooks.Filters.ENV_PATCHES.add_items(
     [
         (
             "openedx-lms-production-settings",
-            '''
+            """
 if "orgcode_enterprise" not in INSTALLED_APPS:
     INSTALLED_APPS.append("orgcode_enterprise")
-''',
+""",
         ),
         (
             "openedx-lms-development-settings",
-            '''
+            """
 if "orgcode_enterprise" not in INSTALLED_APPS:
     INSTALLED_APPS.append("orgcode_enterprise")
-''',
+""",
         ),
     ]
 )
 
 # =========================================================
-# REGISTER URLS
+# REGISTER LMS URLS
 # =========================================================
 
 hooks.Filters.ENV_PATCHES.add_item(
     (
-        "openedx-lms-common-settings",
-        '''
-try:
-    from django.urls import include, path
+        "openedx-lms-urls",
+        """
+from django.urls import include, path
 
-    if "urlpatterns" in globals():
-        urlpatterns += [
-            path("api/orgcode/", include("orgcode_enterprise.urls")),
-        ]
-except Exception:
-    pass
-''',
+urlpatterns += [
+    path("api/orgcode/", include("orgcode_enterprise.urls")),
+]
+""",
     )
 )
