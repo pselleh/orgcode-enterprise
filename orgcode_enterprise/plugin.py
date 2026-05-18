@@ -8,7 +8,7 @@ hooks.Filters.ENV_PATCHES.add_item(
     (
         "openedx-dockerfile-post-python-requirements",
         """
-RUN pip install -e git+https://github.com/pselleh/orgcode-enterprise.git#egg=orgcode-enterprise
+RUN pip install -e git+https://github.com/pselleh/orgcode-enterprise.git#egg=tutor-orgcode-enterprise
 """,
     )
 )
