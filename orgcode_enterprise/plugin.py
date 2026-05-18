@@ -18,8 +18,6 @@ ORGCODE_ENTERPRISE_APP = "orgcode_enterprise.app_config.OrgcodeEnterpriseConfig"
 
 if ORGCODE_ENTERPRISE_APP not in INSTALLED_APPS:
     INSTALLED_APPS.append(ORGCODE_ENTERPRISE_APP)
-
-ROOT_URLCONF = "orgcode_enterprise.lms_urls"
 """,
         ),
         (
@@ -29,8 +27,6 @@ ORGCODE_ENTERPRISE_APP = "orgcode_enterprise.app_config.OrgcodeEnterpriseConfig"
 
 if ORGCODE_ENTERPRISE_APP not in INSTALLED_APPS:
     INSTALLED_APPS.append(ORGCODE_ENTERPRISE_APP)
-
-ROOT_URLCONF = "orgcode_enterprise.lms_urls"
 """,
         ),
     ]
