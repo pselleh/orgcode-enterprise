@@ -16,14 +16,10 @@ hooks.Filters.ENV_PATCHES.add_items(
             """
 ORGCODE_ENTERPRISE_APP = "orgcode_enterprise.app_config.OrgcodeEnterpriseConfig"
 
-if "orgcode_enterprise" in INSTALLED_APPS:
-    INSTALLED_APPS.remove("orgcode_enterprise")
-
-if "orgcode_enterprise.apps.orgcode" in INSTALLED_APPS:
-    INSTALLED_APPS.remove("orgcode_enterprise.apps.orgcode")
-
 if ORGCODE_ENTERPRISE_APP not in INSTALLED_APPS:
     INSTALLED_APPS.append(ORGCODE_ENTERPRISE_APP)
+
+ROOT_URLCONF = "orgcode_enterprise.lms_urls"
 """,
         ),
         (
@@ -31,14 +27,10 @@ if ORGCODE_ENTERPRISE_APP not in INSTALLED_APPS:
             """
 ORGCODE_ENTERPRISE_APP = "orgcode_enterprise.app_config.OrgcodeEnterpriseConfig"
 
-if "orgcode_enterprise" in INSTALLED_APPS:
-    INSTALLED_APPS.remove("orgcode_enterprise")
-
-if "orgcode_enterprise.apps.orgcode" in INSTALLED_APPS:
-    INSTALLED_APPS.remove("orgcode_enterprise.apps.orgcode")
-
 if ORGCODE_ENTERPRISE_APP not in INSTALLED_APPS:
     INSTALLED_APPS.append(ORGCODE_ENTERPRISE_APP)
+
+ROOT_URLCONF = "orgcode_enterprise.lms_urls"
 """,
         ),
     ]

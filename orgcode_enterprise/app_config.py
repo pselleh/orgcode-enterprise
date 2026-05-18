@@ -6,13 +6,3 @@ class OrgcodeEnterpriseConfig(AppConfig):
     name = "orgcode_enterprise"
     label = "orgcode_enterprise"
     verbose_name = "OrgCode Enterprise"
-
-    plugin_app = {
-        "url_config": {
-            "lms.djangoapp": {
-                "namespace": "orgcode_enterprise",
-                "regex": r"^api/orgcode/",
-                "relative_path": "urls",
-            }
-        }
-    }
