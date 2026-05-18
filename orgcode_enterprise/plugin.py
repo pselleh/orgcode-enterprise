@@ -1,26 +1,15 @@
 from tutor import hooks
 
 # =========================================================
-# MOUNT PACKAGE INTO OPENEDX CONTAINER
-# =========================================================
-
-hooks.Filters.MOUNTED_DIRECTORIES.add_item(
-    (
-        "openedx",
-        "/home/cbaadmin/src/orgcode-enterprise",
-        "/openedx/requirements/orgcode-enterprise",
-    )
-)
-
-# =========================================================
-# PATCH OPENEDX DOCKERFILE
+# COPY PACKAGE INTO IMAGE
 # =========================================================
 
 hooks.Filters.ENV_PATCHES.add_item(
     (
         "openedx-dockerfile-post-python-requirements",
         """
-RUN pip install -e /openedx/requirements/orgcode-enterprise
+COPY ./plugins/orgcode-enterprise /openedx/plugins/orgcode-enterprise
+RUN pip install -e /openedx/plugins/orgcode-enterprise
 """,
     )
 )
