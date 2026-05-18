@@ -1,9 +1,5 @@
 from tutor import hooks
 
-# =========================================================
-# INSTALL PACKAGE INTO OPENEDX IMAGE
-# =========================================================
-
 hooks.Filters.ENV_PATCHES.add_item(
     (
         "openedx-dockerfile-post-python-requirements",
@@ -12,10 +8,6 @@ RUN pip install -e git+https://github.com/pselleh/orgcode-enterprise.git#egg=tut
 """,
     )
 )
-
-# =========================================================
-# REGISTER DJANGO APP
-# =========================================================
 
 hooks.Filters.ENV_PATCHES.add_items(
     [
