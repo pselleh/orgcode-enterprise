@@ -1,15 +1,14 @@
 from tutor import hooks
 
 # =========================================================
-# COPY PACKAGE INTO IMAGE
+# INSTALL PACKAGE DIRECTLY FROM GITHUB
 # =========================================================
 
 hooks.Filters.ENV_PATCHES.add_item(
     (
         "openedx-dockerfile-post-python-requirements",
         """
-COPY ./plugins/orgcode-enterprise /openedx/plugins/orgcode-enterprise
-RUN pip install -e /openedx/plugins/orgcode-enterprise
+RUN pip install -e git+https://github.com/pselleh/orgcode-enterprise.git#egg=orgcode-enterprise
 """,
     )
 )
