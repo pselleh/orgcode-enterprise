@@ -35,20 +35,3 @@ if "orgcode_enterprise" not in INSTALLED_APPS:
         ),
     ]
 )
-
-# =========================================================
-# REGISTER LMS URLS
-# =========================================================
-
-hooks.Filters.ENV_PATCHES.add_item(
-    (
-        "openedx-lms-urls",
-        """
-from django.urls import include, path
-
-urlpatterns += [
-    path("api/orgcode/", include("orgcode_enterprise.urls")),
-]
-""",
-    )
-)
