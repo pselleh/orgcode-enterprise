@@ -313,7 +313,7 @@ class LearnerAccreditationRecord(models.Model):
 
 
     class Meta:
-        ordering = ["user__username"]
+        ordering = ["user"]
 
 
 class Organization(models.Model):
