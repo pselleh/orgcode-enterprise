@@ -309,8 +309,7 @@ class LearnerAccreditationRecord(models.Model):
             )
 
     def __str__(self):
-        return f"{self.user.username} Enterprise Profile"
-
+        return f"{self.profile.user.username} Accreditation Record"
 
     class Meta:
         ordering = ["id"]
