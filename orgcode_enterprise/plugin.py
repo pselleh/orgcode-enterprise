@@ -4,7 +4,7 @@ hooks.Filters.ENV_PATCHES.add_item(
     (
         "openedx-dockerfile-post-python-requirements",
         """
-RUN pip install -e "git+https://github.com/pselleh/orgcode-enterprise.git@f0399af5f583ddf7c9bc5066c237f8f08e2f506d#egg=tutor-orgcode-enterprise"
+RUN pip install "git+https://github.com/pselleh/orgcode-enterprise.git@v1.1.0#egg=tutor-orgcode-enterprise"
 """,
     )
 )
@@ -18,6 +18,11 @@ ORGCODE_ENTERPRISE_APP = "orgcode_enterprise.app_config.OrgcodeEnterpriseConfig"
 
 if ORGCODE_ENTERPRISE_APP not in INSTALLED_APPS:
     INSTALLED_APPS.append(ORGCODE_ENTERPRISE_APP)
+
+REST_FRAMEWORK.setdefault("DEFAULT_THROTTLE_RATES", {})
+REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"].setdefault("orgcode_redeem", "10/hour")
+REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"].setdefault("orgcode_access", "600/hour")
+REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"].setdefault("orgcode_authorize", "120/hour")
 """,
         ),
         (
@@ -27,6 +32,11 @@ ORGCODE_ENTERPRISE_APP = "orgcode_enterprise.app_config.OrgcodeEnterpriseConfig"
 
 if ORGCODE_ENTERPRISE_APP not in INSTALLED_APPS:
     INSTALLED_APPS.append(ORGCODE_ENTERPRISE_APP)
+
+REST_FRAMEWORK.setdefault("DEFAULT_THROTTLE_RATES", {})
+REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"].setdefault("orgcode_redeem", "100/hour")
+REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"].setdefault("orgcode_access", "6000/hour")
+REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"].setdefault("orgcode_authorize", "1000/hour")
 """,
         ),
     ]
