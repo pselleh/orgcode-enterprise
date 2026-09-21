@@ -1,6 +1,6 @@
 # CBA OrgCode Enterprise
 
-Version: 1.1.0
+Version: 1.1.1
 Target: Tutor 22 / Open edX Verawood
 
 This Tutor/Open edX extension converts an organization code entered during

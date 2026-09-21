@@ -52,6 +52,8 @@ class RepairedProductionMigrationTests(TransactionTestCase):
             program_id="CBA-PRIVATE-PROGRAM-2027",
         )
 
+        self._simulate_legacy_mysql_integer_keys()
+
         executor = MigrationExecutor(connection)
         executor.migrate([self.migrate_to])
         self.apps = executor.loader.project_state([self.migrate_to]).apps
@@ -93,3 +95,69 @@ class RepairedProductionMigrationTests(TransactionTestCase):
             OrgCode._meta.get_field("code")
         with self.assertRaises(FieldDoesNotExist):
             Profile._meta.get_field("organization_code")
+
+        if connection.vendor == "mysql":
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT table_name, column_name, data_type
+                    FROM information_schema.columns
+                    WHERE table_schema = DATABASE()
+                      AND (
+                            (table_name = 'orgcode_enterprise_orgcode'
+                             AND column_name = 'id')
+                         OR (table_name = 'orgcode_enterprise_orgcodeusage'
+                             AND column_name IN ('id', 'code_id'))
+                      )
+                    """
+                )
+                migrated_types = {
+                    (table_name, column_name): data_type.lower()
+                    for table_name, column_name, data_type in cursor.fetchall()
+                }
+            self.assertEqual(set(migrated_types.values()), {"bigint"})
+
+    def _simulate_legacy_mysql_integer_keys(self):
+        if connection.vendor != "mysql":
+            return
+
+        orgcode_table = "orgcode_enterprise_orgcode"
+        usage_table = "orgcode_enterprise_orgcodeusage"
+        quote = connection.ops.quote_name
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT constraint_name
+                FROM information_schema.key_column_usage
+                WHERE constraint_schema = DATABASE()
+                  AND table_name = %s
+                  AND column_name = 'code_id'
+                  AND referenced_table_name = %s
+                  AND referenced_column_name = 'id'
+                """,
+                [usage_table, orgcode_table],
+            )
+            row = cursor.fetchone()
+            self.assertIsNotNone(row)
+            constraint_name = row[0]
+
+            cursor.execute(
+                f"ALTER TABLE {quote(usage_table)} "
+                f"DROP FOREIGN KEY {quote(constraint_name)}"
+            )
+            cursor.execute(
+                f"ALTER TABLE {quote(orgcode_table)} "
+                f"MODIFY COLUMN {quote('id')} INT NOT NULL AUTO_INCREMENT"
+            )
+            cursor.execute(
+                f"ALTER TABLE {quote(usage_table)} "
+                f"MODIFY COLUMN {quote('id')} INT NOT NULL AUTO_INCREMENT, "
+                f"MODIFY COLUMN {quote('code_id')} INT NOT NULL"
+            )
+            cursor.execute(
+                f"ALTER TABLE {quote(usage_table)} "
+                f"ADD CONSTRAINT {quote(constraint_name)} "
+                f"FOREIGN KEY ({quote('code_id')}) "
+                f"REFERENCES {quote(orgcode_table)} ({quote('id')})"
+            )

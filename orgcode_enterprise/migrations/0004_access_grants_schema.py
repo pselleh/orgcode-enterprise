@@ -5,6 +5,105 @@ from django.conf import settings
 from django.db import migrations, models
 
 
+def reconcile_legacy_mysql_primary_keys(apps, schema_editor):
+    """Align legacy integer keys with the BigAutoField migration state."""
+
+    connection = schema_editor.connection
+    if connection.vendor != "mysql":
+        return
+
+    orgcode_table = "orgcode_enterprise_orgcode"
+    usage_table = "orgcode_enterprise_orgcodeusage"
+    fallback_fk_name = "orgcode_enterprise_orgcodeusage_code_id_56f77375_fk"
+    quote = schema_editor.quote_name
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT table_name, column_name, data_type
+            FROM information_schema.columns
+            WHERE table_schema = DATABASE()
+              AND (
+                    (table_name = %s AND column_name = 'id')
+                 OR (table_name = %s AND column_name IN ('id', 'code_id'))
+              )
+            """,
+            [orgcode_table, usage_table],
+        )
+        column_types = {
+            (table_name, column_name): data_type.lower()
+            for table_name, column_name, data_type in cursor.fetchall()
+        }
+        expected_columns = {
+            (orgcode_table, "id"),
+            (usage_table, "id"),
+            (usage_table, "code_id"),
+        }
+        if set(column_types) != expected_columns:
+            missing = sorted(expected_columns - set(column_types))
+            raise RuntimeError(
+                f"Cannot reconcile OrgCode primary keys; missing columns: {missing}"
+            )
+
+        cursor.execute(
+            """
+            SELECT
+                kcu.constraint_name,
+                rc.delete_rule,
+                rc.update_rule
+            FROM information_schema.key_column_usage AS kcu
+            JOIN information_schema.referential_constraints AS rc
+              ON rc.constraint_schema = kcu.constraint_schema
+             AND rc.constraint_name = kcu.constraint_name
+             AND rc.table_name = kcu.table_name
+            WHERE kcu.constraint_schema = DATABASE()
+              AND kcu.table_name = %s
+              AND kcu.column_name = 'code_id'
+              AND kcu.referenced_table_name = %s
+              AND kcu.referenced_column_name = 'id'
+            """,
+            [usage_table, orgcode_table],
+        )
+        foreign_keys = cursor.fetchall()
+
+        already_bigint = all(
+            column_types[column] == "bigint" for column in expected_columns
+        )
+        if already_bigint and foreign_keys:
+            return
+
+        for constraint_name, _delete_rule, _update_rule in foreign_keys:
+            cursor.execute(
+                f"ALTER TABLE {quote(usage_table)} "
+                f"DROP FOREIGN KEY {quote(constraint_name)}"
+            )
+
+        cursor.execute(
+            f"ALTER TABLE {quote(orgcode_table)} "
+            f"MODIFY COLUMN {quote('id')} BIGINT NOT NULL AUTO_INCREMENT"
+        )
+        cursor.execute(
+            f"ALTER TABLE {quote(usage_table)} "
+            f"MODIFY COLUMN {quote('id')} BIGINT NOT NULL AUTO_INCREMENT, "
+            f"MODIFY COLUMN {quote('code_id')} BIGINT NOT NULL"
+        )
+
+        constraint_name = foreign_keys[0][0] if foreign_keys else fallback_fk_name
+        delete_rule = foreign_keys[0][1] if foreign_keys else "NO ACTION"
+        update_rule = foreign_keys[0][2] if foreign_keys else "NO ACTION"
+        allowed_rules = {"CASCADE", "RESTRICT", "SET NULL", "NO ACTION"}
+        if delete_rule not in allowed_rules or update_rule not in allowed_rules:
+            raise RuntimeError("Unsupported legacy foreign-key action.")
+
+        cursor.execute(
+            f"ALTER TABLE {quote(usage_table)} "
+            f"ADD CONSTRAINT {quote(constraint_name)} "
+            f"FOREIGN KEY ({quote('code_id')}) "
+            f"REFERENCES {quote(orgcode_table)} ({quote('id')}) "
+            f"ON DELETE {delete_rule} ON UPDATE {update_rule}"
+        )
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -13,6 +112,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(
+            reconcile_legacy_mysql_primary_keys,
+            migrations.RunPython.noop,
+        ),
         migrations.CreateModel(
             name='AccessPolicy',
             fields=[
