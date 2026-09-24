@@ -356,3 +356,14 @@ class CertificateProgramEnrollment(models.Model):
 
     def __str__(self):
         return f"{self.profile.user.username} - {self.program.code}"
+
+
+# Promotion and enrollment-inventory models are kept separately to keep this
+# established models module manageable. Importing them registers the models
+# with the orgcode_enterprise Django application.
+from orgcode_enterprise.promotion_models import (  # noqa: E402, F401
+    EnrollmentInventory,
+    EnrollmentReservation,
+    PromotionCampaign,
+    PromotionOffer,
+)
